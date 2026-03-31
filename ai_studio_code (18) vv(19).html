@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You ❤️</title>
+    <!-- Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@400;600;800&family=Playfair+Display:ital,wght@0,400;1,600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* --- 1. PREMIUM VARIABLES --- */
+        :root {
+            --gold: #D4AF37;
+            --rose-gold: #B76E79;
+            --deep-red: #4a0a18;
+            --night-bg: #0f0508;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(212, 175, 55, 0.3);
+            --text-main: #f3e5f5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            height: 100vh;
+            background-color: var(--night-bg);
+            background-image: radial-gradient(circle at 50% 100%, #2b0f16, #000);
+            color: var(--text-main);
+            font-family: 'Baloo Da 2', cursive;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- 2. CINEMATIC EFFECTS --- */
+        /* Film Grain Overlay */
+        .grain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url("https://upload.wikimedia.org/wikipedia/commons/7/76/Noise.png");
+            opacity: 0.05; pointer-events: none; z-index: 2;
+        }
+
+        /* Fireflies (Jonaki) */
+        .firefly {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--gold);
+            animation: floatFly 10s infinite linear;
+            opacity: 0;
+        }
+        @keyframes floatFly {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-10vh) translateX(50px); opacity: 0; }
+        }
+
+        /* --- 3. THE STAGE (Container) --- */
+        .stage-container {
+            width: 90%; max-width: 400px; height: 700px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center;
+            transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            opacity: 0; transform: scale(0.8) translateY(50px);
+            pointer-events: none;
+        }
+
+        .screen.active {
+            opacity: 1; transform: scale(1) translateY(0);
+            pointer-events: all;
+        }
+        
+        .screen.exit {
+            opacity: 0; transform: scale(1.1) translateY(-50px);
+            filter: blur(10px);
+        }
+
+        /* --- 4. UI ELEMENTS --- */
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            color: var(--gold);
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+
+        p {
+            font-size: 1.1rem;
+            font-weight: 300;
+            line-height: 1.8;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .btn-premium {
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-premium::before {
+            content: ''; position: absolute; top:0; left:0; width: 0%; height: 100%;
+            background: var(--gold); transition: 0.4s; z-index: -1;
+        }
+        .btn-premium:hover::before { width: 100%; }
+        .btn-premium:hover { color: #000; box-shadow: 0 0 30px var(--border); }
+
+        /* --- 5. SCREEN SPECIFICS --- */
+        
+        /* Intro Loader */
+        .loader-ring {
+            width: 60px; height: 60px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top: 2px solid var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Photo Cards */
+        .photo-stack {
+            position: relative; width: 220px; height: 280px; margin-bottom: 30px;
+        }
+        .photo {
+            position: absolute; inset: 0;
+            object-fit: cover; width: 100%; height: 100%;
+            border-radius: 15px;
+            border: 5px solid #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: 0.6s ease;
+            backface-visibility: hidden;
+        }
+        /* Rotated stack effect */
+        .photo:nth-child(1) { transform: rotate(-6deg); z-index: 1; }
+        .photo:nth-child(2) { transform: rotate(6deg); z-index: 2; }
+        .photo:nth-child(3) { transform: rotate(0deg) scale(1.05); z-index: 3; }
+        
+        .photo-stack:hover .photo:nth-child(3) { transform: scale(1.1); }
+
+        /* The Lantern (Fanush) */
+        .lantern-container {
+            position: relative; height: 200px; display: flex; justify-content: center; align-items: flex-end;
+            margin-bottom: 30px;
+        }
+        .lantern {
+            width: 80px; height: 120px;
+            background: radial-gradient(circle, #ffeb3b, #f57f17);
+            border-radius: 20px 20px 10px 10px;
+            box-shadow: 0 0 40px #f57f17;
+            position: relative;
+            transform-origin: bottom center;
+        }
+        .lantern.fly {
+            animation: flyUp 4s forwards ease-in;
+        }
+        @keyframes flyUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+        }
+
+        /* The Letter Envelope */
+        .envelope-wrapper {
+            perspective: 1000px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .envelope {
+            width: 280px; height: 180px;
+            background: #e0c9a6; /* Paper color */
+            position: relative;
+            border-radius: 5px;
+            display: flex; justify-content: center; align-items: center;
+            color: #3e2723;
+            font-size: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            transition: 0.5s;
+        }
+        .flap {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #d4b88f;
+            clip-path: polygon(0 0, 50% 50%, 100% 0);
+            transform-origin: top;
+            transition: 0.5s;
+            z-index: 2;
+        }
+        .letter-content {
+            position: absolute;
+            width: 90%; height: 90%;
+            background: #fff;
+            padding: 15px;
+            font-size: 0.9rem;
+            color: #333;
+            text-align: left;
+            transition: 0.5s;
+            transform: translateY(0);
+            z-index: 1;
+            opacity: 0;
+            border-radius: 2px;
+            overflow-y: auto;
+        }
+        
+        .envelope.open .flap { transform: rotateX(180deg); }
+        .envelope.open .letter-content {
+            transform: translateY(-50px) scale(1.1);
+            opacity: 1;
+            z-index: 5;
+            height: 300px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        /* Music Bar */
+        .music-bar {
+            position: fixed; bottom: 30px; right: 30px;
+            display: flex; gap: 3px; height: 20px; align-items: flex-end;
+            cursor: pointer; z-index: 100;
+        }
+        .bar { width: 3px; background: var(--gold); animation: eq 1s infinite ease-in-out; }
+        .bar:nth-child(2) { animation-delay: 0.2s; }
+        .bar:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes eq { 0%, 100% { height: 5px; } 50% { height: 20px; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- Cinematic Overlays -->
+    <div class="grain"></div>
+    <div id="fireflies"></div>
+
+    <!-- Audio -->
+    <audio id="bg-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" type="audio/mp3">
+    </audio>
+
+    <!-- Visualizer Icon -->
+    <div class="music-bar" onclick="toggleAudio()">
+        <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        <span style="font-size: 10px; margin-left:5px; color:var(--gold)">MUSIC</span>
+    </div>
+
+    <div class="stage-container">
+
+        <!-- SCREEN 1: PRE-LOADER -->
+        <div class="screen active" id="s1">
+            <div class="loader-ring"></div>
+            <p style="letter-spacing: 3px; font-size: 0.8rem;">PREPARING SURPRISE...</p>
+            <button class="btn-premium" onclick="go(1)">শুরু করো</button>
+        </div>
+
+        <!-- SCREEN 2: THE HOOK -->
+        <div class="screen" id="s2">
+            <h1>শোনো...</h1> <!-- Listen... -->
+            <p>আজকের আকাশটা অন্যদিনের চেয়ে একটু বেশি নীল,<br>বাতাসটা একটু বেশি মিষ্টি।<br>কারণটা জানো?</p>
+            <button class="btn-premium" onclick="go(2)">কারণটা কী?</button>
+        </div>
+
+        <!-- SCREEN 3: THE MEMORY -->
+        <div class="screen" id="s3">
+            <div class="photo-stack">
+                <!-- REPLACE IMAGES HERE -->
+                <img src="https://images.unsplash.com/photo-1522263842439-347f062b8475?auto=format&fit=crop&w=500&q=60" class="photo">
+                <img src="https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=500&q=60" class="photo">
+                <img src="https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=500&q=60" class="photo">
+            </div>
+            <h1>তোমার ওই হাসি</h1>
+            <p>তোমার ওই হাসিমুখটাই আমার পৃথিবীর সবচেয়ে দামী উপহার।<br>সারাজীবন এভাবেই পাশে থেকো।</p>
+            <button class="btn-premium" onclick="go(3)">এরপর...</button>
+        </div>
+
+        <!-- SCREEN 4: THE RITUAL (LANTERN) -->
+        <div class="screen" id="s4">
+            <div class="lantern-container">
+                <div class="lantern" id="myLantern"></div>
+            </div>
+            <h1>একটি ইচ্ছে</h1>
+            <p>চোখ বন্ধ করে একটা ইচ্ছে করো,<br>তারপর ফানুসটা আকাশে উড়িয়ে দাও।</p>
+            <button class="btn-premium" onclick="releaseLantern()">উড়িয়ে দাও ✨</button>
+        </div>
+
+        <!-- SCREEN 5: THE LETTER -->
+        <div class="screen" id="s5">
+            <h1>শুভ জন্মদিন!</h1>
+            
+            <div class="envelope-wrapper" onclick="openEnvelope()">
+                <div class="envelope" id="env">
+                    ❤️
+                    <div class="flap"></div>
+                    <div class="letter-content">
+                        <h3 style="color: #d40429; margin-bottom:10px;">প্রিয় মানুষ,</h3>
+                        <p style="color: #444; font-size: 0.95rem; line-height: 1.6;">
+                            আজকের এই দিনটা শুধু তোমার নয়, আমার জন্যও উৎসবের। তুমি আছো বলেই আমার পৃথিবীটা এত রঙিন।<br><br>
+                            কখনো বলা হয় না, কিন্তু তুমি আমার জীবনের সেই গল্প, যা আমি কাউকে বলে শেষ করতে পারি না।<br><br>
+                            অনেক অনেক ভালোবাসা নিও। 💕
+                        </p>
+                        <p style="text-align: right; color: #888; font-size: 0.8rem; margin-top: 10px;">- তোমার আমি</p>
+                    </div>
+                </div>
+            </div>
+            
+            <p style="font-size: 0.9rem;">(চিঠিটা পড়তে খামটি স্পর্শ করো)</p>
+            <button class="btn-premium" onclick="location.reload()">প্রথম থেকে দেখো ↻</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. FIREFLIES GENERATOR ---
+        const fireflyContainer = document.getElementById('fireflies');
+        for(let i=0; i<30; i++) {
+            const f = document.createElement('div');
+            f.className = 'firefly';
+            f.style.left = Math.random() * 100 + 'vw';
+            f.style.animationDuration = Math.random() * 5 + 5 + 's';
+            f.style.animationDelay = Math.random() * 5 + 's';
+            fireflyContainer.appendChild(f);
+        }
+
+        // --- 2. NAVIGATION LOGIC ---
+        function go(curr) {
+            // Audio trigger on first click
+            if(curr === 1) {
+                const audio = document.getElementById('bg-music');
+                audio.volume = 0.6;
+                audio.play().catch(e => console.log("Audio waiting for interaction"));
+            }
+
+            const currentScreen = document.getElementById(`s${curr}`);
+            const nextScreen = document.getElementById(`s${curr+1}`);
+
+            currentScreen.classList.remove('active');
+            currentScreen.classList.add('exit');
+
+            setTimeout(() => {
+                nextScreen.classList.add('active');
+            }, 800);
+        }
+
+        // --- 3. LANTERN ANIMATION ---
+        function releaseLantern() {
+            const lantern = document.getElementById('myLantern');
+            lantern.classList.add('fly');
+
+            // Magical Particles
+            confetti({
+                particleCount: 100,
+                spread: 100,
+                origin: { y: 0.7 },
+                colors: ['#ffeb3b', '#ffa000', '#ffffff'],
+                scalar: 0.8,
+                drift: 0
+            });
+
+            setTimeout(() => {
+                go(4);
+            }, 3000);
+        }
+
+        // --- 4. ENVELOPE INTERACTION ---
+        function openEnvelope() {
+            const env = document.getElementById('env');
+            if(!env.classList.contains('open')) {
+                env.classList.add('open');
+                
+                // Final celebration confetti
+                setTimeout(() => {
+                    var duration = 3000;
+                    var end = Date.now() + duration;
+                    (function frame() {
+                        confetti({
+                            particleCount: 5,
+                            angle: 60,
+                            spread: 55,
+                            origin: { x: 0 },
+                            colors: ['#d40429', '#D4AF37']
+                        });
+                        confetti({
+                            particleCount: 5,
+                            angle: 120,
+                            spread: 55,
+                            origin: { x: 1 },
+                            colors: ['#d40429', '#D4AF37']
+                        });
+                        if (Date.now() < end) requestAnimationFrame(frame);
+                    }());
+                }, 500);
+            }
+        }
+
+        // --- 5. AUDIO TOGGLE ---
+        function toggleAudio() {
+            const audio = document.getElementById('bg-music');
+            if(audio.paused) audio.play();
+            else audio.pause();
+        }
+    </script>
+</body>
+</html>
